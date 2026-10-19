@@ -1,0 +1,6 @@
+{
+  "name": "WinMedia Scanner",
+  "description": "Windows media folder scanner and cataloger. Inspect media files by name, folder, codec, extension, and size with real-time filtering and CSV export.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
