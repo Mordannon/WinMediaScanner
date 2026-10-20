@@ -540,6 +540,18 @@ let cancelScanRequested = false;
 
 ipcMain.handle('cancel-scan-native', () => {
   cancelScanRequested = true;
+  if (mainWindow && !mainWindow.isDestroyed() && mainWindow.webContents && !mainWindow.webContents.isDestroyed()) {
+    try {
+      mainWindow.webContents.send('scan-progress', {
+        isScanning: false,
+        currentFolder: 'Scan stopped by user',
+        scannedFilesCount: 0,
+        mediaFilesCount: 0,
+        totalBytes: 0,
+        elapsedMs: 0
+      });
+    } catch {}
+  }
   return true;
 });
 
@@ -567,6 +579,7 @@ ipcMain.handle('scan-directory-native', async (event, rootDir) => {
   };
 
   const sendProgress = (currentDir, force = false) => {
+    if (cancelScanRequested) return;
     const now = Date.now();
     if (force || now - lastProgressSent > 60) {
       lastProgressSent = now;
@@ -601,6 +614,7 @@ ipcMain.handle('scan-directory-native', async (event, rootDir) => {
       return;
     }
 
+    if (cancelScanRequested) return;
     sendProgress(currentDir);
 
     for (let i = 0; i < entries.length; i++) {
@@ -610,7 +624,9 @@ ipcMain.handle('scan-directory-native', async (event, rootDir) => {
 
       if (entry.isDirectory()) {
         await traverse(fullPath);
+        if (cancelScanRequested) break;
       } else if (entry.isFile()) {
+        if (cancelScanRequested) break;
         scannedFilesCount++;
         const ext = path.extname(entry.name).toLowerCase().replace(/^\./, '');
         const isVideo = VIDEO_EXTS.has(ext);

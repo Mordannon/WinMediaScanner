@@ -69,6 +69,10 @@ export default function App() {
   useEffect(() => {
     if (typeof window !== 'undefined' && window.electronAPI) {
       const unsubProgress = window.electronAPI.onScanProgress?.((progress: ScanProgress) => {
+        // If user requested cancellation, ignore any lingering in-flight progress events
+        if (cancelScanRef.current) {
+          if (progress.isScanning) return;
+        }
         setScanProgress(progress);
       });
 
@@ -76,6 +80,10 @@ export default function App() {
       let timeoutId: any = null;
 
       const flushBuffer = () => {
+        if (cancelScanRef.current) {
+          buffer = [];
+          return;
+        }
         if (buffer.length > 0) {
           const batch = buffer.slice();
           buffer = [];
@@ -84,6 +92,7 @@ export default function App() {
       };
 
       const pushFileToBuffer = (f: any) => {
+        if (cancelScanRef.current) return;
         const fallback = EXTENSION_DEFAULT_CODEC[f.extension] || {
           codec: f.extension ? `${f.extension.toUpperCase()} Stream` : 'Media Stream',
           type: f.type || 'other'
@@ -114,10 +123,12 @@ export default function App() {
       };
 
       const unsubItem = window.electronAPI.onScanItem?.((f: any) => {
+        if (cancelScanRef.current) return;
         pushFileToBuffer(f);
       });
 
       const unsubBatch = (window.electronAPI as any).onScanItemsBatch?.((files: any[]) => {
+        if (cancelScanRef.current) return;
         if (Array.isArray(files)) {
           files.forEach(pushFileToBuffer);
         }
@@ -325,9 +336,21 @@ export default function App() {
     }
   };
 
-  const handleCancelScan = () => {
+  const handleCancelScan = async () => {
     cancelScanRef.current = true;
-    setScanProgress(prev => ({ ...prev, isScanning: false }));
+    setScanProgress(prev => ({
+      ...prev,
+      isScanning: false,
+      currentFolder: 'Scan stopped by user'
+    }));
+
+    if (typeof window !== 'undefined' && window.electronAPI?.cancelScanNative) {
+      try {
+        await window.electronAPI.cancelScanNative();
+      } catch (err) {
+        console.error('Failed to cancel scan natively:', err);
+      }
+    }
   };
 
   const handleLoadSample = () => {

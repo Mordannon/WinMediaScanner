@@ -118,6 +118,7 @@ export async function scanDirectoryHandle(
         ? `${currentRelativePath}\\${subDir.name}` 
         : subDir.name;
       await traverse(subDir, nextRelative);
+      if (options.shouldCancel?.()) return;
     }
   }
 
@@ -125,7 +126,7 @@ export async function scanDirectoryHandle(
 
   options.onProgress?.({
     isScanning: false,
-    currentFolder: 'Scan completed',
+    currentFolder: options.shouldCancel?.() ? 'Scan stopped by user' : 'Scan completed',
     scannedFilesCount,
     mediaFilesCount: items.length,
     totalBytes,
@@ -228,7 +229,7 @@ export async function scanFileList(
 
   options.onProgress?.({
     isScanning: false,
-    currentFolder: `Scan completed: ${items.length} media found`,
+    currentFolder: options.shouldCancel?.() ? 'Scan stopped by user' : `Scan completed: ${items.length} media found`,
     scannedFilesCount,
     mediaFilesCount: items.length,
     totalBytes,
