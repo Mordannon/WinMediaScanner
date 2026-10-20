@@ -51,9 +51,13 @@ if %errorlevel% neq 0 (
     )
 )
 
-:: Step 3: Run package:exe (vite build + electron-builder)
+:: Step 3: Package with electron-builder
 echo.
-echo [3/3] Compiling React Vite app and building Windows .exe...
+echo [3/3] Packaging Windows Native Executables with electron-builder...
+if not exist "dist\index.html" (
+    echo Production bundle not found, compiling with Vite...
+    call npm run build
+)
 call npm run package:exe
 if %errorlevel% neq 0 (
     echo.
@@ -67,8 +71,8 @@ echo ========================================================
 echo   SUCCESS! Windows Native Executables Created!
 echo.
 echo   Check your dist-electron folder:
-echo   - WinMedia Scanner Setup 1.0.0.exe
-echo   - WinMedia Scanner 1.0.0.exe Portable
+echo   - WinMedia Scanner Setup 1.0.2.exe
+echo   - WinMedia Scanner 1.0.2.exe (Portable)
 echo ========================================================
 echo.
 if exist "dist-electron" (

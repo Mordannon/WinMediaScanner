@@ -18,6 +18,7 @@ export async function scanDirectoryHandle(
   options: ScanOptions
 ): Promise<MediaItem[]> {
   const items: MediaItem[] = [];
+  const seenPaths = new Set<string>();
   const startTime = Date.now();
   let scannedFilesCount = 0;
   let totalBytes = 0;
@@ -74,6 +75,9 @@ export async function scanDirectoryHandle(
         const codecResult = await detectFileCodec(file);
         const folderPath = displayFolder;
         const fullPath = `${folderPath}\\${file.name}`;
+        const pathKey = fullPath.replace(/\//g, '\\').toLowerCase();
+        if (seenPaths.has(pathKey)) continue;
+        seenPaths.add(pathKey);
 
         const item: MediaItem = {
           id: `file_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
@@ -144,6 +148,7 @@ export async function scanFileList(
   options: ScanOptions
 ): Promise<MediaItem[]> {
   const items: MediaItem[] = [];
+  const seenPaths = new Set<string>();
   const startTime = Date.now();
   let scannedFilesCount = 0;
   let totalBytes = 0;
@@ -190,6 +195,12 @@ export async function scanFileList(
     if (options.mediaOnly && !isMedia) {
       continue;
     }
+
+    const pathKey = fullPath.replace(/\//g, '\\').toLowerCase();
+    if (seenPaths.has(pathKey)) {
+      continue;
+    }
+    seenPaths.add(pathKey);
 
     const codecResult = await detectFileCodec(file);
 
@@ -249,6 +260,7 @@ export async function scanDroppedEntries(
   options: ScanOptions
 ): Promise<MediaItem[]> {
   const mediaItems: MediaItem[] = [];
+  const seenPaths = new Set<string>();
   const startTime = Date.now();
   let scannedFilesCount = 0;
   let totalBytes = 0;
@@ -286,6 +298,12 @@ export async function scanDroppedEntries(
         folderPath = relativeDir ? `${baseFolder}\\${relativeDir}` : baseFolder;
         fullPath = `${folderPath}\\${file.name}`;
       }
+
+      const pathKey = fullPath.replace(/\//g, '\\').toLowerCase();
+      if (seenPaths.has(pathKey)) {
+        return;
+      }
+      seenPaths.add(pathKey);
 
       const codecResult = await detectFileCodec(file);
 

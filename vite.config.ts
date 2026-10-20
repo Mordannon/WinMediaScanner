@@ -48,8 +48,9 @@ export default defineConfig(() => {
     plugins: [react(), tailwindcss(), zipDownloadPlugin()],
     resolve: {
       alias: {
-        '@': path.resolve(__dirname, '.'),
+        '@': path.resolve(process.cwd(), '.'),
       },
+      extensions: ['.tsx', '.ts', '.jsx', '.js', '.json', '.mjs', '.node'],
     },
     server: {
       // HMR is disabled in AI Studio via DISABLE_HMR env var.

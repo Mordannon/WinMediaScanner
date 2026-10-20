@@ -10,7 +10,7 @@ function createWindow() {
     height: 900,
     minWidth: 1024,
     minHeight: 700,
-    title: 'WinMedia Scanner - Windows Native Media Cataloger',
+    title: `WinMedia Scanner v${app.getVersion() || '1.0.2'} - Windows Native Media Cataloger`,
     backgroundColor: '#0f172a',
     autoHideMenuBar: true,
     webPreferences: {
@@ -536,10 +536,12 @@ async function detectMediaCodecs(fullPath, ext, fileName, size) {
   };
 }
 
+let currentScanId = 0;
 let cancelScanRequested = false;
 
 ipcMain.handle('cancel-scan-native', () => {
   cancelScanRequested = true;
+  currentScanId++; // Immediately invalidate any in-flight or queued scan operations
   if (mainWindow && !mainWindow.isDestroyed() && mainWindow.webContents && !mainWindow.webContents.isDestroyed()) {
     try {
       mainWindow.webContents.send('scan-progress', {
@@ -555,9 +557,13 @@ ipcMain.handle('cancel-scan-native', () => {
   return true;
 });
 
-// IPC Handler: Direct, lightning-fast native Windows directory scanning with active live progress
+// IPC Handler: Direct, lightning-fast native Windows directory scanning with active live progress and deduplication
 ipcMain.handle('scan-directory-native', async (event, rootDir) => {
+  // Invalidate any previous scan that might still be traversing
+  currentScanId++;
+  const thisScanId = currentScanId;
   cancelScanRequested = false;
+
   const discoveredFiles = [];
   let scannedFilesCount = 0;
   let mediaFilesCount = 0;
@@ -566,20 +572,18 @@ ipcMain.handle('scan-directory-native', async (event, rootDir) => {
   const startTime = Date.now();
 
   const broadcast = (channel, data) => {
-    try {
-      if (event && event.sender && !event.sender.isDestroyed()) {
-        event.sender.send(channel, data);
-      }
-    } catch {}
+    if (cancelScanRequested || thisScanId !== currentScanId) return;
     try {
       if (mainWindow && !mainWindow.isDestroyed() && mainWindow.webContents && !mainWindow.webContents.isDestroyed()) {
         mainWindow.webContents.send(channel, data);
+      } else if (event && event.sender && !event.sender.isDestroyed()) {
+        event.sender.send(channel, data);
       }
     } catch {}
   };
 
   const sendProgress = (currentDir, force = false) => {
-    if (cancelScanRequested) return;
+    if (cancelScanRequested || thisScanId !== currentScanId) return;
     const now = Date.now();
     if (force || now - lastProgressSent > 60) {
       lastProgressSent = now;
@@ -597,6 +601,10 @@ ipcMain.handle('scan-directory-native', async (event, rootDir) => {
 
   let pendingBatch = [];
   const flushBatch = () => {
+    if (cancelScanRequested || thisScanId !== currentScanId) {
+      pendingBatch = [];
+      return;
+    }
     if (pendingBatch.length > 0) {
       const chunk = pendingBatch.slice();
       pendingBatch = [];
@@ -604,8 +612,23 @@ ipcMain.handle('scan-directory-native', async (event, rootDir) => {
     }
   };
 
+  const visitedDirs = new Set();
+  const visitedFiles = new Set();
+  const visitedInodes = new Set();
+
   async function traverse(currentDir) {
-    if (cancelScanRequested) return;
+    if (cancelScanRequested || thisScanId !== currentScanId) return;
+
+    // Canonical directory path normalization & symlink/junction loop prevention
+    let realDir = currentDir;
+    try {
+      realDir = await fs.promises.realpath(currentDir);
+    } catch {
+      realDir = currentDir;
+    }
+    const cleanRealDir = realDir.replace(/^\\\\\?\\/, '').replace(/\//g, '\\').toLowerCase();
+    if (visitedDirs.has(cleanRealDir)) return;
+    visitedDirs.add(cleanRealDir);
 
     let entries;
     try {
@@ -614,19 +637,24 @@ ipcMain.handle('scan-directory-native', async (event, rootDir) => {
       return;
     }
 
-    if (cancelScanRequested) return;
+    if (cancelScanRequested || thisScanId !== currentScanId) return;
     sendProgress(currentDir);
 
     for (let i = 0; i < entries.length; i++) {
-      if (cancelScanRequested) break;
+      if (cancelScanRequested || thisScanId !== currentScanId) break;
       const entry = entries[i];
       const fullPath = path.join(currentDir, entry.name);
 
+      // Skip symbolic links & directory junctions to prevent loops and duplicate file entries
+      if (typeof entry.isSymbolicLink === 'function' && entry.isSymbolicLink()) {
+        continue;
+      }
+
       if (entry.isDirectory()) {
         await traverse(fullPath);
-        if (cancelScanRequested) break;
+        if (cancelScanRequested || thisScanId !== currentScanId) break;
       } else if (entry.isFile()) {
-        if (cancelScanRequested) break;
+        if (cancelScanRequested || thisScanId !== currentScanId) break;
         scannedFilesCount++;
         const ext = path.extname(entry.name).toLowerCase().replace(/^\./, '');
         const isVideo = VIDEO_EXTS.has(ext);
@@ -634,13 +662,31 @@ ipcMain.handle('scan-directory-native', async (event, rootDir) => {
         const isImage = IMAGE_EXTS.has(ext);
 
         if (isVideo || isAudio || isImage) {
+          const winFullPath = fullPath.replace(/\//g, '\\');
+          const normalizedPathKey = winFullPath.replace(/^\\\\\?\\/, '').toLowerCase();
+
+          // Deduplicate by path string
+          if (visitedFiles.has(normalizedPathKey)) {
+            continue;
+          }
+          visitedFiles.add(normalizedPathKey);
+
           try {
             const stats = await fs.promises.stat(fullPath);
+
+            // Deduplicate by device & inode (NTFS file index) to prevent hardlink/alias duplication
+            if (stats.dev && stats.ino) {
+              const inodeKey = `${stats.dev}:${stats.ino}`;
+              if (visitedInodes.has(inodeKey)) {
+                continue;
+              }
+              visitedInodes.add(inodeKey);
+            }
+
             totalBytes += stats.size;
             mediaFilesCount++;
 
             const winFolder = currentDir.replace(/\//g, '\\');
-            const winFullPath = fullPath.replace(/\//g, '\\');
             const codecInfo = await detectMediaCodecs(fullPath, ext, entry.name, stats.size);
             const res = extractResolution(entry.name, codecInfo.codec, isVideo ? 'video' : isAudio ? 'audio' : 'image', codecInfo.dimensions);
 
@@ -659,9 +705,8 @@ ipcMain.handle('scan-directory-native', async (event, rootDir) => {
 
             discoveredFiles.push(item);
             pendingBatch.push(item);
-            broadcast('scan-item', item);
 
-            if (pendingBatch.length >= 15) {
+            if (pendingBatch.length >= 25) {
               flushBatch();
             }
 
@@ -688,10 +733,14 @@ ipcMain.handle('scan-directory-native', async (event, rootDir) => {
   await traverse(rootDir);
   flushBatch();
 
+  if (thisScanId !== currentScanId || cancelScanRequested) {
+    return [];
+  }
+
   // Final completion event
   broadcast('scan-progress', {
     isScanning: false,
-    currentFolder: cancelScanRequested ? 'Scan cancelled' : `Scan completed: ${mediaFilesCount} media found`,
+    currentFolder: `Scan completed: ${mediaFilesCount} media found`,
     scannedFilesCount,
     mediaFilesCount,
     totalBytes,

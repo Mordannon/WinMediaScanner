@@ -1,5 +1,6 @@
 import React from 'react';
 import { FolderSearch, Download, HardDrive } from 'lucide-react';
+import { APP_VERSION } from '../version';
 
 interface HeaderProps {
   onScanClick: () => void;
@@ -30,9 +31,14 @@ export const Header: React.FC<HeaderProps> = ({
             <HardDrive className="w-5 h-5" />
           </div>
           <div className="flex flex-col">
-            <span className="text-lg font-bold tracking-tight text-white whitespace-nowrap">
-              WinMedia Scanner
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-lg font-bold tracking-tight text-white whitespace-nowrap">
+                WinMedia Scanner
+              </span>
+              <span className="px-1.5 py-0.5 bg-blue-500/15 border border-blue-500/30 text-blue-400 font-mono text-[10px] rounded font-semibold tracking-wide">
+                v{APP_VERSION}
+              </span>
+            </div>
             <span className="text-[11px] text-slate-400 font-mono">
               Windows Media Cataloger & Inspector
             </span>

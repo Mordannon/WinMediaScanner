@@ -1,27 +1,31 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { Header } from './components/Header';
-import { ScanHero } from './components/ScanHero';
-import { StatsBar } from './components/StatsBar';
-import { FilterBar } from './components/FilterBar';
-import { MediaTableView } from './components/MediaTableView';
-import { FolderTreeView } from './components/FolderTreeView';
-import { ExportModal } from './components/ExportModal';
-import { FileDetailsModal } from './components/FileDetailsModal';
-import { SAMPLE_MEDIA_LIBRARY } from './utils/sampleData';
-import { EXTENSION_DEFAULT_CODEC, extractResolution } from './utils/codecDetector';
-import { formatBytes, formatDate } from './utils/formatters';
+import {
+  Header,
+  ScanHero,
+  StatsBar,
+  FilterBar,
+  MediaTableView,
+  FolderTreeView,
+  ExportModal,
+  FileDetailsModal
+} from './components';
+import {
+  SAMPLE_MEDIA_LIBRARY,
+  EXTENSION_DEFAULT_CODEC,
+  extractResolution,
+  formatBytes,
+  formatDate,
+  scanDirectoryHandle,
+  scanFileList,
+  scanDroppedEntries
+} from './utils';
 import { 
   MediaItem, 
   FilterState, 
   SortColumn, 
   SortDirection, 
   ScanProgress 
-} from './types/media';
-import { 
-  scanDirectoryHandle, 
-  scanFileList, 
-  scanDroppedEntries 
-} from './utils/scanner';
+} from './types';
 
 export default function App() {
   // Main media library state: starts empty so user sees only their actual scanned files
@@ -45,6 +49,7 @@ export default function App() {
   });
 
   const cancelScanRef = useRef<boolean>(false);
+  const seenPathsRef = useRef<Set<string>>(new Set());
   const folderInputRef = useRef<HTMLInputElement>(null);
 
   // Sorting state
@@ -87,12 +92,28 @@ export default function App() {
         if (buffer.length > 0) {
           const batch = buffer.slice();
           buffer = [];
-          setItems(prev => [...prev, ...batch]);
+          setItems(prev => {
+            const existingSet = new Set(prev.map(p => (p.fullPath || '').replace(/\//g, '\\').toLowerCase()));
+            const uniqueBatch = batch.filter(b => {
+              const k = (b.fullPath || '').replace(/\//g, '\\').toLowerCase();
+              if (existingSet.has(k)) return false;
+              existingSet.add(k);
+              return true;
+            });
+            return uniqueBatch.length > 0 ? [...prev, ...uniqueBatch] : prev;
+          });
         }
       };
 
       const pushFileToBuffer = (f: any) => {
         if (cancelScanRef.current) return;
+        const winFullPath = (f.fullPath || '').replace(/\//g, '\\');
+        const norm = winFullPath.toLowerCase();
+        if (seenPathsRef.current.has(norm)) {
+          return;
+        }
+        seenPathsRef.current.add(norm);
+
         const fallback = EXTENSION_DEFAULT_CODEC[f.extension] || {
           codec: f.extension ? `${f.extension.toUpperCase()} Stream` : 'Media Stream',
           type: f.type || 'other'
@@ -100,8 +121,8 @@ export default function App() {
         const item: MediaItem = {
           id: `file_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
           name: f.name,
-          folder: f.folder.replace(/\//g, '\\'),
-          fullPath: f.fullPath.replace(/\//g, '\\'),
+          folder: (f.folder || '').replace(/\//g, '\\'),
+          fullPath: winFullPath,
           codec: f.codec || fallback.codec,
           audioCodec: f.audioCodec || fallback.audioCodec,
           extension: f.extension,
@@ -118,15 +139,11 @@ export default function App() {
           timeoutId = setTimeout(() => {
             flushBuffer();
             timeoutId = null;
-          }, 80);
+          }, 60);
         }
       };
 
-      const unsubItem = window.electronAPI.onScanItem?.((f: any) => {
-        if (cancelScanRef.current) return;
-        pushFileToBuffer(f);
-      });
-
+      // Only listen to batched item discoveries to prevent duplicate single-item callbacks
       const unsubBatch = (window.electronAPI as any).onScanItemsBatch?.((files: any[]) => {
         if (cancelScanRef.current) return;
         if (Array.isArray(files)) {
@@ -136,7 +153,6 @@ export default function App() {
 
       return () => {
         if (typeof unsubProgress === 'function') unsubProgress();
-        if (typeof unsubItem === 'function') unsubItem();
         if (typeof unsubBatch === 'function') unsubBatch();
         if (timeoutId) clearTimeout(timeoutId);
         flushBuffer();
@@ -155,6 +171,7 @@ export default function App() {
         }
 
         cancelScanRef.current = false;
+        seenPathsRef.current.clear();
         setItems([]);
         setSelectedIds(new Set());
         setScanProgress({
@@ -167,10 +184,26 @@ export default function App() {
         });
 
         const nativeResults = await (window as any).electronAPI.scanDirectoryNative(selectedDir);
-        if (cancelScanRef.current) return;
+        if (cancelScanRef.current) {
+          setScanProgress(prev => ({
+            ...prev,
+            isScanning: false,
+            currentFolder: 'Scan stopped by user'
+          }));
+          return;
+        }
 
-        // Map native results with real paths and accurately inspected codecs
-        const scannedItems: MediaItem[] = nativeResults.map((f: any, idx: number) => {
+        // Map native results with real paths and accurately inspected codecs, deduplicating strictly by fullPath
+        const seenMap = new Set<string>();
+        const scannedItems: MediaItem[] = [];
+
+        nativeResults.forEach((f: any, idx: number) => {
+          const winFullPath = (f.fullPath || '').replace(/\//g, '\\');
+          const normKey = winFullPath.toLowerCase();
+          if (seenMap.has(normKey)) return;
+          seenMap.add(normKey);
+          seenPathsRef.current.add(normKey);
+
           const fallback = EXTENSION_DEFAULT_CODEC[f.extension] || {
             codec: f.extension ? `${f.extension.toUpperCase()} Stream` : 'Media Stream',
             type: f.type || 'other'
@@ -178,11 +211,11 @@ export default function App() {
           const codec = f.codec || fallback.codec;
           const audioCodec = f.audioCodec || fallback.audioCodec;
 
-          return {
+          scannedItems.push({
             id: `file_${Date.now()}_${idx}`,
             name: f.name,
-            folder: f.folder.replace(/\//g, '\\'),
-            fullPath: f.fullPath.replace(/\//g, '\\'),
+            folder: (f.folder || '').replace(/\//g, '\\'),
+            fullPath: winFullPath,
             codec,
             audioCodec,
             extension: f.extension,
@@ -192,7 +225,7 @@ export default function App() {
             type: f.type || fallback.type,
             lastModified: f.lastModified,
             lastModifiedFormatted: formatDate(f.lastModified)
-          };
+          });
         });
 
         setItems(scannedItems);
@@ -216,6 +249,7 @@ export default function App() {
     if (!isInIframe && 'showDirectoryPicker' in window) {
       try {
         cancelScanRef.current = false;
+        seenPathsRef.current.clear();
         // @ts-expect-error showDirectoryPicker is supported in top-level Chrome & Edge
         const dirHandle = await window.showDirectoryPicker({
           mode: 'read'
@@ -239,13 +273,26 @@ export default function App() {
           windowsDrivePrefix: rootDisplay,
           onProgress: (p) => setScanProgress(p),
           onItemDiscovered: (item) => {
-            setItems(prev => [...prev, item]);
+            const norm = item.fullPath.toLowerCase();
+            if (seenPathsRef.current.has(norm)) return;
+            seenPathsRef.current.add(norm);
+            setItems(prev => {
+              if (prev.some(p => p.fullPath.toLowerCase() === norm)) return prev;
+              return [...prev, item];
+            });
           },
           shouldCancel: () => cancelScanRef.current
         });
 
         if (!cancelScanRef.current && scannedItems.length > 0) {
-          setItems(scannedItems);
+          const seen = new Set<string>();
+          const uniqueList = scannedItems.filter(i => {
+            const k = i.fullPath.toLowerCase();
+            if (seen.has(k)) return false;
+            seen.add(k);
+            return true;
+          });
+          setItems(uniqueList);
           setSelectedIds(new Set());
         }
         return;
@@ -259,6 +306,7 @@ export default function App() {
 
     // 3. Universal directory input fallback: works in cross-origin iframes and all browsers
     if (folderInputRef.current) {
+      seenPathsRef.current.clear();
       folderInputRef.current.value = '';
       folderInputRef.current.click();
     }
@@ -267,6 +315,7 @@ export default function App() {
   // Handle FileList from <input type="file" webkitdirectory>
   const handleFileListSelected = async (fileList: FileList) => {
     cancelScanRef.current = false;
+    seenPathsRef.current.clear();
     setItems([]);
     setSelectedIds(new Set());
     setScanProgress({
@@ -284,13 +333,26 @@ export default function App() {
         windowsDrivePrefix: windowsPrefix,
         onProgress: (p) => setScanProgress(p),
         onItemDiscovered: (item) => {
-          setItems(prev => [...prev, item]);
+          const norm = item.fullPath.toLowerCase();
+          if (seenPathsRef.current.has(norm)) return;
+          seenPathsRef.current.add(norm);
+          setItems(prev => {
+            if (prev.some(p => p.fullPath.toLowerCase() === norm)) return prev;
+            return [...prev, item];
+          });
         },
         shouldCancel: () => cancelScanRef.current
       });
 
       if (!cancelScanRef.current && scannedItems.length > 0) {
-        setItems(scannedItems);
+        const seen = new Set<string>();
+        const uniqueList = scannedItems.filter(i => {
+          const k = i.fullPath.toLowerCase();
+          if (seen.has(k)) return false;
+          seen.add(k);
+          return true;
+        });
+        setItems(uniqueList);
         setSelectedIds(new Set());
       }
     } catch (err) {
@@ -303,6 +365,7 @@ export default function App() {
   // Handle Drag & Drop folders
   const handleDropFiles = async (dataTransferItems: DataTransferItemList) => {
     cancelScanRef.current = false;
+    seenPathsRef.current.clear();
     setItems([]);
     setSelectedIds(new Set());
     setScanProgress({
@@ -320,13 +383,26 @@ export default function App() {
         windowsDrivePrefix: windowsPrefix,
         onProgress: (p) => setScanProgress(p),
         onItemDiscovered: (item) => {
-          setItems(prev => [...prev, item]);
+          const norm = item.fullPath.toLowerCase();
+          if (seenPathsRef.current.has(norm)) return;
+          seenPathsRef.current.add(norm);
+          setItems(prev => {
+            if (prev.some(p => p.fullPath.toLowerCase() === norm)) return prev;
+            return [...prev, item];
+          });
         },
         shouldCancel: () => cancelScanRef.current
       });
 
       if (!cancelScanRef.current && scannedItems.length > 0) {
-        setItems(scannedItems);
+        const seen = new Set<string>();
+        const uniqueList = scannedItems.filter(i => {
+          const k = i.fullPath.toLowerCase();
+          if (seen.has(k)) return false;
+          seen.add(k);
+          return true;
+        });
+        setItems(uniqueList);
         setSelectedIds(new Set());
       }
     } catch (err) {
@@ -428,9 +504,16 @@ export default function App() {
     }
   };
 
-  // Filtered and sorted items
+  // Filtered and sorted items with guaranteed strict deduplication by path
   const filteredItems = useMemo(() => {
+    const seenPathsInFilter = new Set<string>();
+
     return items.filter(item => {
+      // Deduplication guard: Ensure no duplicate rows for the same file path appear in results
+      const pathKey = (item.fullPath || '').replace(/\//g, '\\').toLowerCase();
+      if (seenPathsInFilter.has(pathKey)) return false;
+      seenPathsInFilter.add(pathKey);
+
       // 1. File name text query
       if (filters.searchQuery.trim()) {
         const query = filters.searchQuery.toLowerCase();
