@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Copy, Check, Film, Music, Image as ImageIcon, HardDrive, Folder, Cpu, Calendar, Play, Monitor } from 'lucide-react';
-import { MediaItem } from '../types/media';
+import { MediaItem } from '../types/media.ts';
 
 interface FileDetailsModalProps {
   item: MediaItem | null;

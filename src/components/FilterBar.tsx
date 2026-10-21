@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Search, Filter, X, ChevronDown, SlidersHorizontal, Folder, Cpu, FileCode, HardDrive, Monitor } from 'lucide-react';
-import { FilterState, MediaItem, MediaType } from '../types/media';
+import { FilterState, MediaItem, MediaType } from '../types/media.ts';
 
 interface FilterBarProps {
   filters: FilterState;
@@ -20,34 +20,51 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   const [maxSizeInput, setMaxSizeInput] = useState('');
   const [sizeUnit, setSizeUnit] = useState<'MB' | 'GB'>('MB');
 
-  // Extract unique folders, codecs, resolutions, and extensions with counts
+  // When Video, Audio, or Images are selected, scope the column filter options to only that file type
+  const scopedItems = React.useMemo(() => {
+    if (!filters.selectedTypes || filters.selectedTypes.length === 0) {
+      return items;
+    }
+    return items.filter(item => filters.selectedTypes.includes(item.type));
+  }, [items, filters.selectedTypes]);
+
+  const activeTypeLabel = React.useMemo(() => {
+    if (!filters.selectedTypes || filters.selectedTypes.length === 0) return '';
+    if (filters.selectedTypes.length === 1) {
+      const t = filters.selectedTypes[0];
+      return t === 'video' ? 'Video' : t === 'audio' ? 'Audio' : 'Images';
+    }
+    return 'Selected Types';
+  }, [filters.selectedTypes]);
+
+  // Extract unique folders, codecs, resolutions, and extensions with counts for the selected file type
   const folderCounts = React.useMemo(() => {
     const map = new Map<string, number>();
-    items.forEach(i => map.set(i.folder, (map.get(i.folder) || 0) + 1));
+    scopedItems.forEach(i => map.set(i.folder, (map.get(i.folder) || 0) + 1));
     return Array.from(map.entries()).sort((a, b) => b[1] - a[1]);
-  }, [items]);
+  }, [scopedItems]);
 
   const codecCounts = React.useMemo(() => {
     const map = new Map<string, number>();
-    items.forEach(i => map.set(i.codec, (map.get(i.codec) || 0) + 1));
+    scopedItems.forEach(i => map.set(i.codec, (map.get(i.codec) || 0) + 1));
     return Array.from(map.entries()).sort((a, b) => b[1] - a[1]);
-  }, [items]);
+  }, [scopedItems]);
 
   const resolutionCounts = React.useMemo(() => {
     const map = new Map<string, number>();
-    items.forEach(i => {
+    scopedItems.forEach(i => {
       if (i.resolution && i.resolution !== '—') {
         map.set(i.resolution, (map.get(i.resolution) || 0) + 1);
       }
     });
     return Array.from(map.entries()).sort((a, b) => b[1] - a[1]);
-  }, [items]);
+  }, [scopedItems]);
 
   const extensionCounts = React.useMemo(() => {
     const map = new Map<string, number>();
-    items.forEach(i => map.set(i.extension, (map.get(i.extension) || 0) + 1));
+    scopedItems.forEach(i => map.set(i.extension, (map.get(i.extension) || 0) + 1));
     return Array.from(map.entries()).sort((a, b) => b[1] - a[1]);
-  }, [items]);
+  }, [scopedItems]);
 
   // Has any active filter
   const hasActiveFilters = 
@@ -146,11 +163,30 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   };
 
   const toggleMediaType = (type: MediaType) => {
-    const exists = filters.selectedTypes.includes(type);
-    const updated = exists 
-      ? filters.selectedTypes.filter(t => t !== type)
-      : [...filters.selectedTypes, type];
-    onFilterChange({ ...filters, selectedTypes: updated });
+    // If clicking the already selected single type, reset to 'All'
+    const isAlreadySelected = filters.selectedTypes.length === 1 && filters.selectedTypes[0] === type;
+    const nextTypes: MediaType[] = isAlreadySelected ? [] : [type];
+
+    // Determine target items for the next type selection to prune incompatible filters
+    const targetItems = nextTypes.length > 0 
+      ? items.filter(i => nextTypes.includes(i.type))
+      : items;
+
+    const validCodecs = new Set(targetItems.map(i => i.codec));
+    const validResolutions = new Set(targetItems.map(i => i.resolution).filter(Boolean));
+    const validExtensions = new Set(targetItems.map(i => i.extension));
+
+    const prunedCodecs = filters.selectedCodecs.filter(c => validCodecs.has(c));
+    const prunedResolutions = (filters.selectedResolutions || []).filter(r => validResolutions.has(r));
+    const prunedExtensions = filters.selectedExtensions.filter(e => validExtensions.has(e));
+
+    onFilterChange({
+      ...filters,
+      selectedTypes: nextTypes,
+      selectedCodecs: prunedCodecs,
+      selectedResolutions: prunedResolutions,
+      selectedExtensions: prunedExtensions
+    });
   };
 
   return (
@@ -281,7 +317,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
               <div className="flex items-center justify-between mb-2">
                 <span className="font-semibold text-slate-200 flex items-center gap-1.5">
                   <Cpu className="w-3.5 h-3.5 text-blue-400" />
-                  Filter by Codec ({codecCounts.length})
+                  Filter by Codec {activeTypeLabel ? `(${activeTypeLabel}: ${codecCounts.length})` : `(${codecCounts.length})`}
                 </span>
                 {filters.selectedCodecs.length > 0 && (
                   <button
@@ -294,7 +330,9 @@ export const FilterBar: React.FC<FilterBarProps> = ({
               </div>
               <div className="max-h-36 overflow-y-auto space-y-1 pr-1">
                 {codecCounts.length === 0 ? (
-                  <p className="text-slate-500 text-[11px]">No codecs detected yet</p>
+                  <p className="text-slate-500 text-[11px] py-2">
+                    {activeTypeLabel ? `No ${activeTypeLabel.toLowerCase()} codecs detected` : 'No codecs detected yet'}
+                  </p>
                 ) : (
                   codecCounts.map(([codec, count]) => {
                     const isSelected = filters.selectedCodecs.includes(codec);
@@ -322,7 +360,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
               <div className="flex items-center justify-between mb-2">
                 <span className="font-semibold text-slate-200 flex items-center gap-1.5">
                   <Monitor className="w-3.5 h-3.5 text-purple-400" />
-                  Filter by Resolution ({resolutionCounts.length})
+                  Filter by Resolution {activeTypeLabel ? `(${activeTypeLabel}: ${resolutionCounts.length})` : `(${resolutionCounts.length})`}
                 </span>
                 {filters.selectedResolutions && filters.selectedResolutions.length > 0 && (
                   <button
@@ -334,8 +372,15 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                 )}
               </div>
               <div className="max-h-36 overflow-y-auto space-y-1 pr-1">
-                {resolutionCounts.length === 0 ? (
-                  <p className="text-slate-500 text-[11px]">No resolutions detected yet</p>
+                {filters.selectedTypes.length === 1 && filters.selectedTypes[0] === 'audio' ? (
+                  <div className="py-4 text-center px-2">
+                    <p className="text-slate-400 text-[11px] font-medium">Audio Files</p>
+                    <p className="text-slate-500 text-[10px] mt-0.5">Audio files do not have pixel dimensions</p>
+                  </div>
+                ) : resolutionCounts.length === 0 ? (
+                  <p className="text-slate-500 text-[11px] py-2">
+                    {activeTypeLabel ? `No ${activeTypeLabel.toLowerCase()} resolutions detected` : 'No resolutions detected yet'}
+                  </p>
                 ) : (
                   resolutionCounts.map(([res, count]) => {
                     const isSelected = filters.selectedResolutions?.includes(res);
@@ -363,7 +408,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
               <div className="flex items-center justify-between mb-2">
                 <span className="font-semibold text-slate-200 flex items-center gap-1.5">
                   <FileCode className="w-3.5 h-3.5 text-emerald-400" />
-                  Filter by Extension ({extensionCounts.length})
+                  Filter by Extension {activeTypeLabel ? `(${activeTypeLabel}: ${extensionCounts.length})` : `(${extensionCounts.length})`}
                 </span>
                 {filters.selectedExtensions.length > 0 && (
                   <button
@@ -376,7 +421,9 @@ export const FilterBar: React.FC<FilterBarProps> = ({
               </div>
               <div className="max-h-36 overflow-y-auto space-y-1 pr-1">
                 {extensionCounts.length === 0 ? (
-                  <p className="text-slate-500 text-[11px]">No extensions available</p>
+                  <p className="text-slate-500 text-[11px] py-2">
+                    {activeTypeLabel ? `No ${activeTypeLabel.toLowerCase()} extensions available` : 'No extensions available'}
+                  </p>
                 ) : (
                   extensionCounts.map(([ext, count]) => {
                     const isSelected = filters.selectedExtensions.includes(ext);

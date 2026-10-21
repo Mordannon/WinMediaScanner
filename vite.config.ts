@@ -47,9 +47,12 @@ export default defineConfig(() => {
     base: './',
     plugins: [react(), tailwindcss(), zipDownloadPlugin()],
     resolve: {
-      alias: {
-        '@': path.resolve(process.cwd(), '.'),
-      },
+      alias: [
+        { find: /^@\//, replacement: `${path.resolve(process.cwd(), 'src')}/` },
+        { find: /^\.\/utils$/, replacement: path.resolve(process.cwd(), 'src/utils/index.ts') },
+        { find: /^\.\/components$/, replacement: path.resolve(process.cwd(), 'src/components/index.ts') },
+        { find: /^\.\/types$/, replacement: path.resolve(process.cwd(), 'src/types/index.ts') },
+      ],
       extensions: ['.tsx', '.ts', '.jsx', '.js', '.json', '.mjs', '.node'],
     },
     server: {

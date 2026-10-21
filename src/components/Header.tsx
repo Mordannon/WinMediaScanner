@@ -1,6 +1,6 @@
 import React from 'react';
 import { FolderSearch, Download, HardDrive } from 'lucide-react';
-import { APP_VERSION } from '../version';
+import { APP_VERSION } from '../version.ts';
 
 interface HeaderProps {
   onScanClick: () => void;
@@ -78,6 +78,7 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Zone 3: Primary Action & Export */}
       <div className="flex items-center gap-3 shrink-0">
+
         <button
           onClick={onExportClick}
           disabled={mediaCount === 0}

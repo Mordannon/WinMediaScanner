@@ -14,15 +14,15 @@ In desktop mode, it uses native Windows File Explorer dialogs (with button label
 3. Double-click **`build-windows-exe.bat`**.
 4. It will install dependencies, compile the application with Vite, and package the Windows `.exe`.
 5. It will automatically open the `dist-electron` folder containing:
-   - **`WinMedia Scanner Setup 1.0.1.exe`**: Standard Windows installer (desktop shortcut, start menu shortcut, uninstaller).
-   - **`WinMedia Scanner 1.0.1.exe`**: Portable standalone executable (no installation required; run directly from any folder or USB drive).
+   - **`WinMedia Scanner Setup 1.0.3.exe`**: Standard Windows installer (desktop shortcut, start menu shortcut, uninstaller).
+   - **`WinMedia Scanner 1.0.3.exe`**: Portable standalone executable (no installation required; run directly from any folder or USB drive).
 
 ---
 
 ## Incrementing the Build / Version Number for Future Releases
 
 To update the build number for future builds:
-1. Open `package.json` and update `"version": "1.0.x"` (e.g., `"1.0.2"`).
+1. Open `package.json` and update `"version": "1.0.x"` (e.g., `"1.0.3"`).
 2. Open `src/version.ts` and set `export const APP_VERSION = '1.0.x'`.
 3. Re-run `build-windows-exe.bat` or `npm run package:exe`. Electron Builder will automatically name the generated executables with the new version number and the window title / header will reflect the new build number!
 

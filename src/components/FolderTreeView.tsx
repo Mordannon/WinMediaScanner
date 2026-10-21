@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Folder, FolderOpen, ChevronRight, ChevronDown, Copy, Check, Film, Music, Image as ImageIcon, FileQuestion } from 'lucide-react';
-import { MediaItem, MediaType } from '../types';
-import { formatBytes } from '../utils';
+import { MediaItem, MediaType } from '../types/media.ts';
+import { formatBytes } from '../utils/formatters.ts';
 
 interface FolderTreeViewProps {
   items: MediaItem[];

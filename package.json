@@ -1,7 +1,9 @@
 {
   "name": "winmedia-scanner",
   "private": true,
-  "version": "1.0.2",
+  "version": "1.0.3",
+  "description": "Windows Native Media Cataloger & Inspector",
+  "author": "WinMedia Scanner Team",
   "type": "module",
   "main": "electron/main.cjs",
   "scripts": {
@@ -13,7 +15,7 @@
     "electron:dev": "vite build && electron electron/main.cjs",
     "electron:build": "vite build && electron-builder --win",
     "package:exe": "electron-builder --win",
-    "package:exe:full": "vite build && electron-builder --win"
+    "package:exe:build": "vite build && electron-builder --win"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

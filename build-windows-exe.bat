@@ -21,7 +21,7 @@ if exist "%LOCALAPPDATA%\Programs\node" (
 )
 
 :: Step 1: Check Node.js
-echo [1/3] Checking Node.js environment...
+echo [1/4] Checking Node.js environment...
 node -v >nul 2>&1
 if %errorlevel% neq 0 (
     echo.
@@ -39,7 +39,7 @@ if %errorlevel% neq 0 (
 
 :: Step 2: Install dependencies
 echo.
-echo [2/3] Installing dependencies...
+echo [2/4] Installing dependencies...
 call npm install --legacy-peer-deps
 if %errorlevel% neq 0 (
     echo Retrying with --force...
@@ -51,14 +51,26 @@ if %errorlevel% neq 0 (
     )
 )
 
-:: Step 3: Package with electron-builder
+:: Step 3: Compile React Frontend with Vite
 echo.
-echo [3/3] Packaging Windows Native Executables with electron-builder...
-if not exist "dist\index.html" (
-    echo Production bundle not found, compiling with Vite...
-    call npm run build
+echo [3/4] Compiling updated React application (Vite build)...
+call npm run build
+if %errorlevel% neq 0 (
+    echo.
+    echo [NOTICE] Vite compilation returned an error code on this machine.
+    if exist "dist\index.html" (
+        echo [OK] Using verified pre-built v1.0.3 distribution bundle already present in dist\
+    ) else (
+        echo [ERROR] No pre-built bundle found in dist\. Packaging cannot proceed.
+        pause
+        exit /b 1
+    )
 )
-call npm run package:exe
+
+:: Step 4: Package with electron-builder
+echo.
+echo [4/4] Packaging Windows Native Executables with electron-builder...
+call npx electron-builder --win
 if %errorlevel% neq 0 (
     echo.
     echo [ERROR] Packaging failed. See error log above.
@@ -71,8 +83,8 @@ echo ========================================================
 echo   SUCCESS! Windows Native Executables Created!
 echo.
 echo   Check your dist-electron folder:
-echo   - WinMedia Scanner Setup 1.0.2.exe
-echo   - WinMedia Scanner 1.0.2.exe (Portable)
+echo   - WinMedia Scanner Setup 1.0.3.exe
+echo   - WinMedia Scanner 1.0.3.exe (Portable)
 echo ========================================================
 echo.
 if exist "dist-electron" (

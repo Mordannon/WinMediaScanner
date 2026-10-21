@@ -1,4 +1,4 @@
-import { MediaItem, CsvExportOptions } from '../types/media';
+import { MediaItem, CsvExportOptions } from '../types/media.ts';
 
 export function generateCsv(items: MediaItem[], options: CsvExportOptions): string {
   const delimiter = options.delimiter || ',';

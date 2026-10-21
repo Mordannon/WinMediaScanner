@@ -1,7 +1,7 @@
 import React from 'react';
 import { Film, Music, Image as ImageIcon, HardDrive, FolderTree } from 'lucide-react';
-import { MediaItem } from '../types/media';
-import { formatBytes } from '../utils/formatters';
+import { MediaItem } from '../types/media.ts';
+import { formatBytes } from '../utils/formatters.ts';
 
 interface StatsBarProps {
   items: MediaItem[];

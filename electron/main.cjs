@@ -10,7 +10,7 @@ function createWindow() {
     height: 900,
     minWidth: 1024,
     minHeight: 700,
-    title: `WinMedia Scanner v${app.getVersion() || '1.0.2'} - Windows Native Media Cataloger`,
+    title: `WinMedia Scanner v${app.getVersion() || '1.0.3'} - Windows Native Media Cataloger`,
     backgroundColor: '#0f172a',
     autoHideMenuBar: true,
     webPreferences: {

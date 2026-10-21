@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { X, Download, Copy, Check, FileSpreadsheet, Settings } from 'lucide-react';
-import { MediaItem, CsvExportOptions } from '../types/media';
-import { generateCsv, downloadCsvFile } from '../utils/csvExporter';
+import { MediaItem, CsvExportOptions } from '../types/media.ts';
+import { generateCsv, downloadCsvFile } from '../utils/csvExporter.ts';
 
 interface ExportModalProps {
   isOpen: boolean;

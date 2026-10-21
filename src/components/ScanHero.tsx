@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { FolderSearch, StopCircle, Settings2, Check } from 'lucide-react';
-import { ScanProgress } from '../types/media';
-import { formatBytes } from '../utils/formatters';
+import { ScanProgress } from '../types/media.ts';
+import { formatBytes } from '../utils/formatters.ts';
 
 interface ScanHeroProps {
   onSelectFolder?: () => void;

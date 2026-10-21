@@ -1,6 +1,6 @@
-import { MediaItem, ScanProgress } from '../types/media';
-import { detectFileCodec, isMediaExtension, getMediaTypeFromExtension, extractResolution } from './codecDetector';
-import { formatBytes, formatDate, normalizeWindowsPath } from './formatters';
+import { MediaItem, ScanProgress } from '../types/media.ts';
+import { detectFileCodec, isMediaExtension, getMediaTypeFromExtension, extractResolution } from './codecDetector.ts';
+import { formatBytes, formatDate, normalizeWindowsPath } from './formatters.ts';
 
 export interface ScanOptions {
   mediaOnly: boolean;

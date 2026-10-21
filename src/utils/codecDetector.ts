@@ -1,4 +1,4 @@
-import { MediaType } from '../types/media';
+import { MediaType } from '../types/media.ts';
 
 export interface CodecDetectionResult {
   codec: string;

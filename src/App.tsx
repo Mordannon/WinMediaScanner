@@ -1,31 +1,37 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { Header } from './components/Header.tsx';
+import { ScanHero } from './components/ScanHero.tsx';
+import { StatsBar } from './components/StatsBar.tsx';
+import { FilterBar } from './components/FilterBar.tsx';
+import { MediaTableView } from './components/MediaTableView.tsx';
+import { FolderTreeView } from './components/FolderTreeView.tsx';
+import { ExportModal } from './components/ExportModal.tsx';
+import { FileDetailsModal } from './components/FileDetailsModal.tsx';
+
 import {
-  Header,
-  ScanHero,
-  StatsBar,
-  FilterBar,
-  MediaTableView,
-  FolderTreeView,
-  ExportModal,
-  FileDetailsModal
-} from './components';
+  SAMPLE_MEDIA_LIBRARY
+} from './utils/sampleData.ts';
 import {
-  SAMPLE_MEDIA_LIBRARY,
   EXTENSION_DEFAULT_CODEC,
-  extractResolution,
+  extractResolution
+} from './utils/codecDetector.ts';
+import {
   formatBytes,
-  formatDate,
+  formatDate
+} from './utils/formatters.ts';
+import {
   scanDirectoryHandle,
   scanFileList,
   scanDroppedEntries
-} from './utils';
+} from './utils/scanner.ts';
+
 import { 
   MediaItem, 
   FilterState, 
   SortColumn, 
   SortDirection, 
   ScanProgress 
-} from './types';
+} from './types/media.ts';
 
 export default function App() {
   // Main media library state: starts empty so user sees only their actual scanned files

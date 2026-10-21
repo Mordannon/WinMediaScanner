@@ -1,6 +1,6 @@
-import { MediaItem } from '../types/media';
-import { formatBytes, formatDate } from './formatters';
-import { extractResolution } from './codecDetector';
+import { MediaItem } from '../types/media.ts';
+import { formatBytes, formatDate } from './formatters.ts';
+import { extractResolution } from './codecDetector.ts';
 
 const RAW_SAMPLE_MEDIA_LIBRARY: MediaItem[] = [
   // 4K & High-Res Movies

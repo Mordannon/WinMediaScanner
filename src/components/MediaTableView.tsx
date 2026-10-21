@@ -5,8 +5,8 @@ import {
   RotateCcw, WrapText, Maximize2, ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight,
   Columns3, ChevronDown, Trash2, Play
 } from 'lucide-react';
-import { MediaItem, SortColumn, SortDirection, MediaType } from '../types';
-import { DeleteConfirmationModal } from './DeleteConfirmationModal';
+import { MediaItem, SortColumn, SortDirection, MediaType } from '../types/media.ts';
+import { DeleteConfirmationModal } from './DeleteConfirmationModal.tsx';
 
 export type ColumnKey = 'name' | 'folder' | 'codec' | 'resolution' | 'extension' | 'size';
 
