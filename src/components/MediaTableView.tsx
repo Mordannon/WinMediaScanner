@@ -3,10 +3,11 @@ import {
   ArrowUpDown, ArrowUp, ArrowDown, Check, Info, Film, 
   Music, Image as ImageIcon, FileQuestion, FolderOpen, FolderSearch,
   RotateCcw, WrapText, Maximize2, ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight,
-  Columns3, ChevronDown, Trash2, Play
+  Columns3, ChevronDown, Trash2, Play, FolderX
 } from 'lucide-react';
 import { MediaItem, SortColumn, SortDirection, MediaType } from '../types/media.ts';
 import { DeleteConfirmationModal } from './DeleteConfirmationModal.tsx';
+import { RadarFolderIcon } from './RadarFolderIcon.tsx';
 
 export type ColumnKey = 'name' | 'folder' | 'codec' | 'resolution' | 'extension' | 'size';
 
@@ -55,6 +56,8 @@ interface MediaTableViewProps {
   onClearSelection: () => void;
   onInspectItem: (item: MediaItem) => void;
   onFilterByFolder: (folder: string) => void;
+  onExcludeFolder?: (folder: string) => void;
+  excludedFolders?: string[];
   onFilterByCodec: (codec: string) => void;
   onFilterByResolution?: (resolution: string) => void;
   onFilterByExtension: (ext: string) => void;
@@ -78,6 +81,8 @@ export const MediaTableView: React.FC<MediaTableViewProps> = ({
   onClearSelection,
   onInspectItem,
   onFilterByFolder,
+  onExcludeFolder,
+  excludedFolders,
   onFilterByCodec,
   onFilterByResolution,
   onFilterByExtension,
@@ -359,9 +364,7 @@ export const MediaTableView: React.FC<MediaTableViewProps> = ({
     if (isScanning) {
       return (
         <div className="w-full bg-slate-900 px-6 py-20 text-center text-slate-400">
-          <div className="w-14 h-14 rounded-2xl bg-blue-500/20 border border-blue-500/30 text-blue-400 flex items-center justify-center mx-auto mb-4 animate-spin">
-            <FolderSearch className="w-7 h-7" />
-          </div>
+          <RadarFolderIcon className="w-16 h-16 mx-auto mb-4" animated={true} />
           <h3 className="text-base font-bold text-white mb-1.5 flex items-center justify-center gap-2">
             <span>Recursively Indexing Media Files...</span>
           </h3>
@@ -378,7 +381,7 @@ export const MediaTableView: React.FC<MediaTableViewProps> = ({
 
     return (
       <div className="w-full bg-slate-900 px-6 py-16 text-center text-slate-400">
-        <FolderOpen className="w-12 h-12 text-slate-600 mx-auto mb-3" />
+        <RadarFolderIcon className="w-16 h-16 mx-auto mb-4 opacity-90 hover:opacity-100 transition-opacity" />
         <h3 className="text-base font-semibold text-slate-200 mb-1">
           No media files to display
         </h3>
@@ -793,17 +796,29 @@ export const MediaTableView: React.FC<MediaTableViewProps> = ({
                         >
                           {item.folder}
                         </span>
-                        <button
-                          onClick={(e) => handleOpenFolder(item.folder, item.id, e)}
-                          className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-amber-400 hover:bg-slate-800 rounded transition-all shrink-0"
-                          title="Open folder"
-                        >
-                          {openedFolderId === item.id ? (
-                            <Check className="w-3.5 h-3.5 text-emerald-400" />
-                          ) : (
-                            <FolderOpen className="w-3.5 h-3.5 text-amber-400/80 hover:text-amber-400" />
-                          )}
-                        </button>
+                        <div className="flex items-center gap-0.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onExcludeFolder?.(item.folder);
+                            }}
+                            className="p-1 text-slate-400 hover:text-rose-400 hover:bg-rose-950/60 rounded transition-all shrink-0"
+                            title={`Exclude "${item.folder}" and its subfolders from results`}
+                          >
+                            <FolderX className="w-3.5 h-3.5 text-rose-400/80 hover:text-rose-400" />
+                          </button>
+                          <button
+                            onClick={(e) => handleOpenFolder(item.folder, item.id, e)}
+                            className="p-1 text-slate-400 hover:text-amber-400 hover:bg-slate-800 rounded transition-all shrink-0"
+                            title="Open folder in File Explorer"
+                          >
+                            {openedFolderId === item.id ? (
+                              <Check className="w-3.5 h-3.5 text-emerald-400" />
+                            ) : (
+                              <FolderOpen className="w-3.5 h-3.5 text-amber-400/80 hover:text-amber-400" />
+                            )}
+                          </button>
+                        </div>
                       </div>
                     </td>
                   )}

@@ -26,6 +26,7 @@ export interface FilterState {
   searchQuery: string;
   folderQuery: string;
   selectedFolders: string[];
+  excludedFolders?: string[];
   selectedCodecs: string[];
   selectedResolutions: string[];
   selectedExtensions: string[];

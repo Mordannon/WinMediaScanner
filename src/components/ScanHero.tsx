@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { FolderSearch, StopCircle, Settings2, Check } from 'lucide-react';
 import { ScanProgress } from '../types/media.ts';
 import { formatBytes } from '../utils/formatters.ts';
+import { RadarFolderIcon } from './RadarFolderIcon.tsx';
 
 interface ScanHeroProps {
   onSelectFolder?: () => void;
@@ -36,9 +37,7 @@ export const ScanHero: React.FC<ScanHeroProps> = ({
           <div className="bg-slate-800/95 border border-blue-500/50 rounded-xl p-4 mb-3 shadow-xl backdrop-blur-md ring-1 ring-blue-500/20">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-3 border-b border-slate-700/80">
               <div className="flex items-center gap-3 min-w-0">
-                <div className="w-10 h-10 rounded-xl bg-blue-500/20 border border-blue-500/30 text-blue-400 flex items-center justify-center shrink-0">
-                  <FolderSearch className="w-5 h-5 animate-spin" />
-                </div>
+                <RadarFolderIcon className="w-11 h-11 shrink-0" animated={true} />
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="relative flex h-2 w-2">

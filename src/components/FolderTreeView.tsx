@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Folder, FolderOpen, ChevronRight, ChevronDown, Copy, Check, Film, Music, Image as ImageIcon, FileQuestion } from 'lucide-react';
+import { Folder, FolderOpen, ChevronRight, ChevronDown, Copy, Check, Film, Music, Image as ImageIcon, FileQuestion, FolderX } from 'lucide-react';
 import { MediaItem, MediaType } from '../types/media.ts';
 import { formatBytes } from '../utils/formatters.ts';
 
@@ -7,6 +7,7 @@ interface FolderTreeViewProps {
   items: MediaItem[];
   onInspectItem: (item: MediaItem) => void;
   onFilterByFolder: (folder: string) => void;
+  onExcludeFolder?: (folder: string) => void;
   onOpenFolder?: (folder: string) => void;
 }
 
@@ -14,6 +15,7 @@ export const FolderTreeView: React.FC<FolderTreeViewProps> = ({
   items,
   onInspectItem,
   onFilterByFolder,
+  onExcludeFolder,
   onOpenFolder
 }) => {
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
@@ -164,9 +166,20 @@ export const FolderTreeView: React.FC<FolderTreeViewProps> = ({
                     </span>
 
                     <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onExcludeFolder?.(group.folder);
+                      }}
+                      className="p-1 text-slate-400 hover:text-rose-400 hover:bg-rose-950/60 rounded transition-colors"
+                      title={`Exclude "${group.folder}" and its contents from results`}
+                    >
+                      <FolderX className="w-3.5 h-3.5 text-rose-400/80 hover:text-rose-400" />
+                    </button>
+
+                    <button
                       onClick={(e) => handleOpenFolder(group.folder, e)}
                       className="p-1 text-slate-400 hover:text-amber-400 hover:bg-slate-800 rounded transition-colors"
-                      title="Open folder"
+                      title="Open folder in File Explorer"
                     >
                       {isOpened ? (
                         <Check className="w-3.5 h-3.5 text-emerald-400" />

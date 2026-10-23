@@ -67,6 +67,7 @@ export default function App() {
     searchQuery: '',
     folderQuery: '',
     selectedFolders: [],
+    excludedFolders: [],
     selectedCodecs: [],
     selectedResolutions: [],
     selectedExtensions: [],
@@ -473,6 +474,19 @@ export default function App() {
     setFilters(prev => ({ ...prev, folderQuery: folder }));
   };
 
+  const handleExcludeFolder = (folderToExclude: string) => {
+    setFilters(prev => {
+      const current = prev.excludedFolders || [];
+      if (current.includes(folderToExclude)) return prev;
+      return {
+        ...prev,
+        excludedFolders: [...current, folderToExclude]
+      };
+    });
+    setDeleteToast(`Excluded folder: "${folderToExclude}" and its contents`);
+    setTimeout(() => setDeleteToast(null), 3500);
+  };
+
   const handleFilterByCodec = (codec: string) => {
     setFilters(prev => ({
       ...prev,
@@ -535,6 +549,16 @@ export default function App() {
       // 3. Selected folders
       if (filters.selectedFolders.length > 0) {
         if (!filters.selectedFolders.includes(item.folder)) return false;
+      }
+
+      // 3b. Excluded folders & their subfolders
+      if (filters.excludedFolders && filters.excludedFolders.length > 0) {
+        const itemFolderNorm = (item.folder || '').replace(/\//g, '\\').toLowerCase();
+        const isExcluded = filters.excludedFolders.some(ex => {
+          const exNorm = ex.replace(/\//g, '\\').toLowerCase();
+          return itemFolderNorm === exNorm || itemFolderNorm.startsWith(exNorm.endsWith('\\') ? exNorm : exNorm + '\\');
+        });
+        if (isExcluded) return false;
       }
 
       // 4. Codecs
@@ -751,6 +775,8 @@ export default function App() {
               onClearSelection={handleClearSelection}
               onInspectItem={setInspectedItem}
               onFilterByFolder={handleFilterByFolder}
+              onExcludeFolder={handleExcludeFolder}
+              excludedFolders={filters.excludedFolders}
               onFilterByCodec={handleFilterByCodec}
               onFilterByResolution={handleFilterByResolution}
               onFilterByExtension={handleFilterByExtension}
@@ -771,6 +797,7 @@ export default function App() {
                 handleFilterByFolder(folder);
                 setActiveView('list');
               }}
+              onExcludeFolder={handleExcludeFolder}
               onOpenFolder={handleOpenFolder}
             />
           </div>

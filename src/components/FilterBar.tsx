@@ -22,11 +22,21 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 
   // When Video, Audio, or Images are selected, scope the column filter options to only that file type
   const scopedItems = React.useMemo(() => {
-    if (!filters.selectedTypes || filters.selectedTypes.length === 0) {
-      return items;
+    let result = items;
+    if (filters.selectedTypes && filters.selectedTypes.length > 0) {
+      result = result.filter(item => filters.selectedTypes.includes(item.type));
     }
-    return items.filter(item => filters.selectedTypes.includes(item.type));
-  }, [items, filters.selectedTypes]);
+    if (filters.excludedFolders && filters.excludedFolders.length > 0) {
+      result = result.filter(item => {
+        const itemFolderNorm = (item.folder || '').replace(/\//g, '\\').toLowerCase();
+        return !filters.excludedFolders!.some(ex => {
+          const exNorm = ex.replace(/\//g, '\\').toLowerCase();
+          return itemFolderNorm === exNorm || itemFolderNorm.startsWith(exNorm.endsWith('\\') ? exNorm : exNorm + '\\');
+        });
+      });
+    }
+    return result;
+  }, [items, filters.selectedTypes, filters.excludedFolders]);
 
   const activeTypeLabel = React.useMemo(() => {
     if (!filters.selectedTypes || filters.selectedTypes.length === 0) return '';
@@ -71,6 +81,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
     filters.searchQuery.trim() !== '' ||
     filters.folderQuery.trim() !== '' ||
     filters.selectedFolders.length > 0 ||
+    Boolean(filters.excludedFolders && filters.excludedFolders.length > 0) ||
     filters.selectedCodecs.length > 0 ||
     (filters.selectedResolutions && filters.selectedResolutions.length > 0) ||
     filters.selectedExtensions.length > 0 ||
@@ -86,6 +97,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
       searchQuery: '',
       folderQuery: '',
       selectedFolders: [],
+      excludedFolders: [],
       selectedCodecs: [],
       selectedResolutions: [],
       selectedExtensions: [],
@@ -94,6 +106,11 @@ export const FilterBar: React.FC<FilterBarProps> = ({
       maxSizeBytes: null,
       sizePreset: 'all'
     });
+  };
+
+  const removeExcludedFolder = (folder: string) => {
+    const updated = (filters.excludedFolders || []).filter(f => f !== folder);
+    onFilterChange({ ...filters, excludedFolders: updated });
   };
 
   const toggleCodec = (codec: string) => {
@@ -587,6 +604,13 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                 <X className="w-3 h-3 cursor-pointer hover:text-white" onClick={() => setPreset('all')} />
               </span>
             )}
+            {filters.excludedFolders?.map(folder => (
+              <span key={folder} className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-rose-950/80 border border-rose-700/60 text-rose-200 rounded font-mono text-[11px]" title={`Excluded: ${folder} and subfolders`}>
+                <span className="text-rose-400 font-bold uppercase text-[10px]">Excluded:</span>
+                <span className="truncate max-w-[200px]">{folder}</span>
+                <X className="w-3 h-3 cursor-pointer hover:text-white shrink-0" onClick={() => removeExcludedFolder(folder)} />
+              </span>
+            ))}
             <button
               onClick={resetAllFilters}
               className="text-[11px] text-rose-400 hover:underline ml-1"

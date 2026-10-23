@@ -1,0 +1,159 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <!-- Folder Gradients (Windows 11 Fluent Golden Amber) -->
+    <linearGradient id="folderBackGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFB300" />
+      <stop offset="60%" stop-color="#F57C00" />
+      <stop offset="100%" stop-color="#E65100" />
+    </linearGradient>
+    
+    <linearGradient id="folderFrontGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFE082" />
+      <stop offset="25%" stop-color="#FFCA28" />
+      <stop offset="65%" stop-color="#FFA000" />
+      <stop offset="100%" stop-color="#F57C00" />
+    </linearGradient>
+
+    <linearGradient id="folderFlapHighlight" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#FFF9C4" stop-opacity="0.95" />
+      <stop offset="45%" stop-color="#FFE082" stop-opacity="0.6" />
+      <stop offset="100%" stop-color="#FFB300" stop-opacity="0.2" />
+    </linearGradient>
+
+    <!-- Document Sheets inside folder -->
+    <linearGradient id="sheetGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="100%" stop-color="#F1F5F9" />
+    </linearGradient>
+
+    <linearGradient id="sheetBackGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#E2E8F0" />
+      <stop offset="100%" stop-color="#CBD5E1" />
+    </linearGradient>
+
+    <!-- Radar Scope Display Gradients -->
+    <radialGradient id="radarBg" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#043919" />
+      <stop offset="65%" stop-color="#022410" />
+      <stop offset="95%" stop-color="#011409" />
+      <stop offset="100%" stop-color="#000d05" />
+    </radialGradient>
+
+    <!-- Radar Bezel Metallic Outer Ring -->
+    <linearGradient id="bezelGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#475569" />
+      <stop offset="30%" stop-color="#1e293b" />
+      <stop offset="70%" stop-color="#0f172a" />
+      <stop offset="100%" stop-color="#334155" />
+    </linearGradient>
+
+    <linearGradient id="bezelAccent" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#22c55e" stop-opacity="0.95" />
+      <stop offset="100%" stop-color="#15803d" stop-opacity="0.5" />
+    </linearGradient>
+
+    <!-- Radar Sweep Glow Gradient -->
+    <linearGradient id="sweepGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#86efac" stop-opacity="0.95" />
+      <stop offset="35%" stop-color="#4ade80" stop-opacity="0.55" />
+      <stop offset="70%" stop-color="#22c55e" stop-opacity="0.22" />
+      <stop offset="100%" stop-color="#15803d" stop-opacity="0" />
+    </linearGradient>
+
+    <!-- Glass Lens Highlight Reflection -->
+    <linearGradient id="glareGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.42" />
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.0" />
+    </linearGradient>
+  </defs>
+
+  <!-- Ground Drop Shadow under entire folder -->
+  <ellipse cx="256" cy="438" rx="205" ry="24" fill="#000000" opacity="0.32" />
+  <ellipse cx="256" cy="434" rx="190" ry="16" fill="#000000" opacity="0.25" />
+
+  <!-- ================= WINDOWS FOLDER BACK & TAB ================= -->
+  <!-- Back Tab & Body of Folder -->
+  <path d="M 52 136 C 52 118, 66 104, 84 104 L 188 104 C 204 104, 216 112, 224 124 L 246 152 L 428 152 C 446 152, 460 166, 460 184 L 460 396 C 460 414, 446 428, 428 428 L 84 428 C 66 428, 52 414, 52 396 Z"
+        fill="url(#folderBackGrad)" />
+
+  <!-- Interior document sheets peeking out -->
+  <rect x="96" y="118" width="320" height="150" rx="10" fill="url(#sheetBackGrad)" opacity="0.6" />
+  <rect x="80" y="128" width="352" height="180" rx="12" fill="url(#sheetGrad)" />
+  
+  <!-- Media preview details on document sheet -->
+  <rect x="108" y="148" width="110" height="9" rx="4.5" fill="#94A3B8" opacity="0.75" />
+  <rect x="108" y="165" width="75" height="7" rx="3.5" fill="#CBD5E1" opacity="0.8" />
+  <circle cx="394" cy="158" r="14" fill="#3B82F6" opacity="0.8" />
+  <polygon points="391,152 400,158 391,164" fill="#FFFFFF" />
+
+  <!-- Drop Shadow cast by front flap onto back interior -->
+  <path d="M 44 200 L 468 200 L 468 214 L 44 214 Z" fill="#000000" opacity="0.18" />
+
+  <!-- ================= WINDOWS FOLDER FRONT FLAP ================= -->
+  <!-- Front Flap of Folder (Curved, glossy) -->
+  <path d="M 44 200 C 44 182, 58 168, 76 168 L 436 168 C 454 168, 468 182, 468 200 L 468 400 C 468 418, 454 432, 436 432 L 76 432 C 58 432, 44 418, 44 400 Z"
+        fill="url(#folderFrontGrad)" />
+
+  <!-- Top Rim Highlight on Front Flap -->
+  <path d="M 46 198 C 46 183, 58 170, 76 170 L 436 170 C 454 170, 466 183, 466 198 L 466 202 C 466 187, 454 174, 436 174 L 76 174 C 58 174, 46 187, 46 202 Z"
+        fill="url(#folderFlapHighlight)" />
+
+  <!-- Bottom Edge subtle dark bevel -->
+  <path d="M 76 431 L 436 431 C 452 431, 465 420, 467 406 C 466 418, 454 432, 436 432 L 76 432 C 58 432, 46 418, 45 406 C 47 420, 60 431, 76 431 Z"
+        fill="#C2410C" opacity="0.4" />
+
+  <!-- ================= GREEN RADAR SCREEN ON FRONT OF FOLDER ================= -->
+  <g transform="translate(256, 308)">
+    <!-- Radar Outer Bezel Drop Shadow -->
+    <circle cx="0" cy="8" r="95" fill="#000000" opacity="0.45" />
+    <circle cx="0" cy="5" r="93" fill="#000000" opacity="0.3" />
+
+    <!-- Bezel Ring (Machined Gunmetal / Metallic) -->
+    <circle cx="0" cy="0" r="92" fill="url(#bezelGrad)" stroke="#64748b" stroke-width="2" />
+    
+    <!-- Glowing Emerald Inner Bezel Accent -->
+    <circle cx="0" cy="0" r="85" fill="#0f172a" stroke="url(#bezelAccent)" stroke-width="2.2" />
+
+    <!-- Radar Scope Display Screen -->
+    <circle cx="0" cy="0" r="82" fill="url(#radarBg)" />
+
+    <!-- Grid Coordinate Range Rings (Concentric Circles) -->
+    <circle cx="0" cy="0" r="22" fill="none" stroke="#22c55e" stroke-width="1.2" stroke-opacity="0.35" />
+    <circle cx="0" cy="0" r="44" fill="none" stroke="#22c55e" stroke-width="1.3" stroke-opacity="0.45" />
+    <circle cx="0" cy="0" r="66" fill="none" stroke="#22c55e" stroke-width="1.4" stroke-opacity="0.6" />
+
+    <!-- Crosshair Cardinal Axes -->
+    <line x1="-80" y1="0" x2="80" y2="0" stroke="#22c55e" stroke-width="1.2" stroke-opacity="0.45" stroke-dasharray="4 3" />
+    <line x1="0" y1="-80" x2="0" y2="80" stroke="#22c55e" stroke-width="1.2" stroke-opacity="0.45" stroke-dasharray="4 3" />
+
+    <!-- Diagonal Azimuth Grid Marks -->
+    <line x1="-58" y1="-58" x2="58" y2="58" stroke="#16a34a" stroke-width="0.9" stroke-opacity="0.3" stroke-dasharray="2 4" />
+    <line x1="-58" y1="58" x2="58" y2="-58" stroke="#16a34a" stroke-width="0.9" stroke-opacity="0.3" stroke-dasharray="2 4" />
+
+    <!-- Glowing Detected Media Target Blips -->
+    <!-- Blip 1: Video file discovered in active sweep sector -->
+    <circle cx="42" cy="-36" r="6" fill="#86efac" opacity="0.3" />
+    <circle cx="42" cy="-36" r="3.8" fill="#bbf7d0" />
+    <circle cx="42" cy="-36" r="8" fill="none" stroke="#4ade80" stroke-width="1.2" opacity="0.75" />
+
+    <!-- Blip 2: Audio file ping -->
+    <circle cx="-34" cy="-44" r="5" fill="#4ade80" opacity="0.25" />
+    <circle cx="-34" cy="-44" r="3" fill="#4ade80" />
+    <circle cx="-34" cy="-44" r="6" fill="none" stroke="#22c55e" stroke-width="0.9" opacity="0.5" />
+
+    <!-- Blip 3: High-res media file -->
+    <circle cx="50" cy="30" r="5" fill="#86efac" opacity="0.25" />
+    <circle cx="50" cy="30" r="3.2" fill="#86efac" />
+
+    <!-- Blip 4: Fast scan file near hub -->
+    <circle cx="-18" cy="20" r="2.4" fill="#22c55e" opacity="0.85" />
+
+    <!-- Center Radar Receiver Hub -->
+    <circle cx="0" cy="0" r="7" fill="#86efac" opacity="0.3" />
+    <circle cx="0" cy="0" r="4.5" fill="#86efac" />
+    <circle cx="0" cy="0" r="1.8" fill="#FFFFFF" />
+
+    <!-- Glossy Glass Lens Reflection / Glare Arc -->
+    <path d="M -62 -52 A 80 80 0 0 1 62 -52 A 76 56 0 0 0 -62 -52 Z" fill="url(#glareGrad)" />
+  </g>
+</svg>

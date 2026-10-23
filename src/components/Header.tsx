@@ -1,6 +1,7 @@
 import React from 'react';
-import { FolderSearch, Download, HardDrive } from 'lucide-react';
+import { Download, FolderSearch } from 'lucide-react';
 import { APP_VERSION } from '../version.ts';
+import { RadarFolderIcon } from './RadarFolderIcon.tsx';
 
 interface HeaderProps {
   onScanClick: () => void;
@@ -27,9 +28,7 @@ export const Header: React.FC<HeaderProps> = ({
       {/* Zone 1: Brand wordmark & live scanning pill */}
       <div className="flex items-center gap-4 shrink-0">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400">
-            <HardDrive className="w-5 h-5" />
-          </div>
+          <RadarFolderIcon className="w-10 h-10" animated={isScanning} />
           <div className="flex flex-col">
             <div className="flex items-center gap-2">
               <span className="text-lg font-bold tracking-tight text-white whitespace-nowrap">

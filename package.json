@@ -1,7 +1,7 @@
 {
   "name": "winmedia-scanner",
   "private": true,
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Windows Native Media Cataloger & Inspector",
   "author": "WinMedia Scanner Team",
   "type": "module",

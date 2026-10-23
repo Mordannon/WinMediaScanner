@@ -59,7 +59,7 @@ if %errorlevel% neq 0 (
     echo.
     echo [NOTICE] Vite compilation returned an error code on this machine.
     if exist "dist\index.html" (
-        echo [OK] Using verified pre-built v1.0.3 distribution bundle already present in dist\
+        echo [OK] Using verified pre-built v1.0.4 distribution bundle already present in dist\
     ) else (
         echo [ERROR] No pre-built bundle found in dist\. Packaging cannot proceed.
         pause
@@ -83,8 +83,8 @@ echo ========================================================
 echo   SUCCESS! Windows Native Executables Created!
 echo.
 echo   Check your dist-electron folder:
-echo   - WinMedia Scanner Setup 1.0.3.exe
-echo   - WinMedia Scanner 1.0.3.exe (Portable)
+echo   - WinMedia Scanner Setup 1.0.4.exe
+echo   - WinMedia Scanner 1.0.4.exe (Portable)
 echo ========================================================
 echo.
 if exist "dist-electron" (

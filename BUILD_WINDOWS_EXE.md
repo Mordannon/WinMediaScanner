@@ -9,13 +9,13 @@ In desktop mode, it uses native Windows File Explorer dialogs (with button label
 ## Method 1: Download & Build the Standalone Windows `.exe`
 
 1. Download the updated project source archive:
-   - **Direct Download Link**: `https://ais-dev-byflpsuzhtocwwqpbpmmju-454822803215.us-east5.run.app/WinMediaScanner-Source.zip`
+   - **Direct Download Link**: `https://ais-dev-byflpsuzhtocwwqpbpmmju-454822803215.us-east5.run.app/WinMediaScanner-Source-v1.0.4.zip`
 2. Extract the ZIP file into a folder on your Windows computer.
 3. Double-click **`build-windows-exe.bat`**.
 4. It will install dependencies, compile the application with Vite, and package the Windows `.exe`.
 5. It will automatically open the `dist-electron` folder containing:
-   - **`WinMedia Scanner Setup 1.0.3.exe`**: Standard Windows installer (desktop shortcut, start menu shortcut, uninstaller).
-   - **`WinMedia Scanner 1.0.3.exe`**: Portable standalone executable (no installation required; run directly from any folder or USB drive).
+   - **`WinMedia Scanner Setup 1.0.4.exe`**: Standard Windows installer (desktop shortcut, start menu shortcut, uninstaller).
+   - **`WinMedia Scanner 1.0.4.exe`**: Portable standalone executable (no installation required; run directly from any folder or USB drive).
 
 ---
 
